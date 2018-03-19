@@ -1,7 +1,13 @@
 /* The 'path' below is a built-in MODULE of Node.js that provides utilities for working with file and directory
 PATHS. So we just need to import him like below, we DON'T need to install ANYTHING through npm in the terminal */
 const path = require("path");
+const http = require("http"); // It's a built-in Node.js MODULE
 const express = require("express");
+/* Now in order to setup "Web Sockets" we're going to be using a library called "Socket.IO", just like "Express"
+makes it REALLY easy to setup an HTTP Server, "Socket.IO" makes it dead SIMPLE to setup a Server that supports
+"Web Sockets" and create a Front end that COMMUNICATES with the Server. "Socket.IO" is a back AND front end 
+library and we're going to use BOTH to setup "Web Sockets" */
+const socketIO = require("socket.io");
 
 /* This 'path.join' below is a method that JOIN ALL given PATH segments TOGETHER and then NORMALIZES the 
 resulting PATH.  */
@@ -16,20 +22,44 @@ const port = process.env.PORT || 3000;
 /* REMEMBER that we DON'T configure 'Express' by passing IN an argument but INSTEAD we configure it by calling
 methods on the 'app' to create Routes or add Middleware or start up the server */
 var app = express();
+/* This 'http.createServer' is WHAT behind the scenes gets CALLED when we use 'app.listen', it takes a Function
+that is really SIMILAR to one of our "Express" Callbacks and gets called with a 'req' and 'res', NOW as we 
+mentioned the 'http' module is actually used behind the scenes for "Express" and they're INTEGRATED so much that
+instead of the Callback we can ACTUALLY provide the 'app' itself as the argument like we're doing here below. */
+var server = http.createServer(app);
+// This is how we INTEGRATE our 'server' with "Socket.io"
+var io = socketIO(server);
 
 app.use(express.static(publicPath));
 
-/* This below is the old way of using a PATH, in this case the result is the following as we can see from the
-terminal 'C:\Users\creaw\OneDrive\Desktop\Utility PC\Code\Node.js Complete Course\node-chat-app\server/../public'
-SO from THIS 'server.js' file we want to go into the 'public' folder, for doing so we enter the 'server' folder
-in the FIRST place, THEN we leave this folder going out and ENTERING inside the 'public' folder, with the 'join'
-method INSTEAD we can go DIRECTLY inside the 'public' folder WITHOUT passing for server and then going out */
-// console.log(__dirname + "/../public");
-/* As we can see from the terminal in THIS case INSTEAD of going into the 'server' folder and then going OUT like
-we do with the console.log ABOVE, we go RIGHT into the 'public' directory which is IDEAL and THIS is the PATH we
-want to provide to the 'Express' Static Middleware */
-// console.log(publicPath);
+/* 'io.on' let use REGISTER an "Event Listener", we can listen for a SPECIFIC event and DO something when THAT
+even happens. One built-in EVENT that we're going to use, one of the MOST popular is called 'connection' and let
+us LISTEN for a NEW connection(meaning that a Client connected to the server) and let us do something when that
+connection comes in, in order to DO something we provide a Callback Function as the SECOND argument and THIS
+Callback is going to get CALLED with a 'socket' argument that is REALLY similar to the 'socket' argument we have
+ACCESS inside the second SCRIPT in our 'index.html' file(so where we have the 'socket' variable). "Web Sockets"
+as we mentioned are a PERSISTENT technology, meaning that the CLIENT and the SERVER they BOTH keep the
+communication channel OPEN for as long as both of them want to, IF the Server shuts down, the Client doesn't
+really have a choice and the SAME thing for the opposite, so if we close a Browser tab the Server CANNOT force
+us to KEEP the connection open. NOW, when a connection DROPS, the Client it's STILL going to try to RECONNECT
+when we RESTART the Server with 'Nodemon' because there is a very small window of time where the Server is DOWN
+and the Client NOTICES that, so the Client TRIES to RECONNECT and EVENTUALLY it reconnects. IF we try to SHUT
+DOWN our Server(so we disconnect from the the Server using the terminal) and we go on the CLIENT(so the Browser
+in our case) we see that there are NETWORK REQUEST that are STILL being made, so the CLIENT is TRYING to
+reconnect to the SERVER, as we can see though ALL of these connection are FAILING because the server is DOWN. So
+now if we RECONNECT the Server and we go BACK on the Client we'll see that the Connection request goes well and
+we ALSO see this "New user connected" message INSIDE the Terminal */
+io.on("connection", socket => {
+  console.log("New user connected");
 
-app.listen(port, () => {
+  socket.on("disconnect", () => {
+    console.log("User was disconnected");
+  });
+});
+
+/* NOW we're using this http 'server'(the 'server' variable above) as OPPOSED to the 'Express' server(the 'app' 
+variable above) and INSTEAD of calling 'app.listen' we're going to use 'server.listen'. Now with all of this in 
+place we HAVEN'T changed anything in our app FUNCTIONALITY, our server is still going to work on port 3000  */
+server.listen(port, () => {
   console.log(`Server is up on port ${port}`);
 });
