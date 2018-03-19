@@ -9,6 +9,7 @@ makes it REALLY easy to setup an HTTP Server, "Socket.IO" makes it dead SIMPLE t
 library and we're going to use BOTH to setup "Web Sockets" */
 const socketIO = require("socket.io");
 
+var { generateMessage } = require("./utils/message");
 /* This 'path.join' below is a method that JOIN ALL given PATH segments TOGETHER and then NORMALIZES the 
 resulting PATH.  */
 const publicPath = path.join(__dirname, "../public");
@@ -52,17 +53,13 @@ we ALSO see this "New user connected" message INSIDE the Terminal */
 io.on("connection", socket => {
   console.log("New user connected");
 
-  socket.emit("newMessage", {
-    from: "Admin",
-    text: "Welcome to the chat app",
-    createdAt: new Date().getTime()
-  });
+  /* Here below we're using our newly created 'generateMessage' method that create a new Object for us, so now 
+  we have the SAME exact functionality as before BUT now we're using a the 'generateMessage' function to GENERATE
+  that Object for US which is going to make SCALING a LOT easier and it's ALSO going to make updating what is
+  inside of a message much easier as well */
+  socket.emit("newMessage", generateMessage("Admin", "Welcome to the chat app"));
 
-  socket.broadcast.emit("newMessage", {
-    from: "Admin",
-    text: "New user joined",
-    createdAt: new Date().getTime()
-  });
+  socket.broadcast.emit("newMessage", generateMessage("Admin", "New user joined"));
 
   /* We're going to use this 'emit' method on BOTH the Client AND the Server to EMIT Events, 'emit' is REALLY
   similar to the listeners Events BUT in this case we're NOT listening to an Event, we're CREATING the Event.
@@ -90,13 +87,7 @@ io.on("connection", socket => {
   messaged printend on BOTH the page(so EVEN on the page of the user who SENT the "message") */
   socket.on("createMessage", message => {
     console.log("createMessage", message);
-    io.emit("newMessage", {
-      from: message.from,
-      text: message.text,
-      /* This 'createdAt' property will get generated ONLY by the Server to PREVENT a specific Client from
-      SPOOFING(imbrogliare) when a message was created */
-      createdAt: new Date().getTime()
-    });
+    io.emit("newMessage", generateMessage(message.from, message.text));
     /* BROADCASTING is the term for EMITTING an Event to EVERYBODY(so to all the user CONNECTED to our Server)
     EXCEPT for OURSELF(so the User who SENT the actual EVENT). To "BROADCAST" we have to SPECIFY the individual
     SOCKET, and this lets the 'Socket.io' library KNOW which user SHOULDN'T get the EVENT, NOW this 'broadcast'
