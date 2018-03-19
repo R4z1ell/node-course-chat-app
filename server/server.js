@@ -52,6 +52,26 @@ we ALSO see this "New user connected" message INSIDE the Terminal */
 io.on("connection", socket => {
   console.log("New user connected");
 
+  /* We're going to use this 'emit' method on BOTH the Client AND the Server to EMIT Events, 'emit' is REALLY
+  similar to the listeners Events BUT in this case we're NOT listening to an Event, we're CREATING the Event.
+  The FIRST argument is going to be the NAME of Event we want to EMIT and we have to match it EXACTLY as we
+  specified it inside the 'index.js' file(so it's should be EXACTLY 'newEmail'), NOW this is NOT a listener so
+  we're NOT going to provide a Callback Function BUT what we want to do is to SPECIIFY the DATA. By DEFAULT we
+  don't have to specify ANY Data, maybe we just want to emit a new email WITHOUT anything BUT if we want to PASS
+  some CUSTOM Data is super easy, ALL we have to do is provide a SECOND argument an OBJECT because in most cases
+  we want to send MULTIPLE pieces of Data across, in this way we can specify ANYTHING we like. This Data we have
+  inside our Object will be sent ALONG with the 'newEmail' EVENT from the Server to the Client */
+  socket.emit("newMessage", {
+    from: "John",
+    text: "See you then",
+    createdAt: 123123 // This is a TIMESTAMP of when the server GOT this email
+  });
+
+  socket.on("createMessage", message => {
+    console.log("createMessage", message);
+  });
+
+  // 'connection' and 'disconnect' are BUILT-IN Events
   socket.on("disconnect", () => {
     console.log("User was disconnected");
   });
