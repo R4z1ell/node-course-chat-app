@@ -24,10 +24,10 @@ server" and the Server prints "New user connected"(we have this message inside t
   to EMIT this 'createMessage' EVENT and INSIDE our TERMINAL we could see this 'createEmail' Event PRINTED to 
   the screen with the CUSTOM Data Object and all his information printed on the TERMINAL. SO in THIS case this
   'createMessage' EVENT was EMITTED from the Client to the Server that GOT the Data  */
-  socket.emit("createMessage", {
-    from: "Andrew",
-    text: "Yup, that works for me."
-  });
+  // socket.emit("createMessage", {
+  //   from: "Andrew",
+  //   text: "Yup, that works for me."
+  // });
 });
 
 /* Here below we call 'socket.on' again to LISTEN to an EVENT, the event in THIS case is the 'disconnect' and 

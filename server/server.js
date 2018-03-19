@@ -61,14 +61,30 @@ io.on("connection", socket => {
   some CUSTOM Data is super easy, ALL we have to do is provide a SECOND argument an OBJECT because in most cases
   we want to send MULTIPLE pieces of Data across, in this way we can specify ANYTHING we like. This Data we have
   inside our Object will be sent ALONG with the 'newEmail' EVENT from the Server to the Client */
-  socket.emit("newMessage", {
-    from: "John",
-    text: "See you then",
-    createdAt: 123123 // This is a TIMESTAMP of when the server GOT this email
-  });
+  // socket.emit("newMessage", {
+  //   from: "John",
+  //   text: "See you then",
+  //   createdAt: 123123 // This is a TIMESTAMP of when the server GOT this email
+  // });
 
+  /* Currently ALL we do here below is LOG the Data to the screen BUT instead we actually want to EMIT a NEW 
+  message Event to EVERYBODY, so EVERY single connected user gets the message that was sent from a SPECIFIC user. 
+  In order to get this done we're going to call 'io.emit', while 'socket.emit' EMITS an Event to a SINGLE 
+  Connection, 'io.emit' EMITS an Event to EVERY SINGLE Connection. With this in place we can now restart our
+  Server and open TWO new tab in our Browser BOTH connected to 'localhost:3000', NOW from one of these two tab
+  we can SEND a new message from INSIDE the DEV TOOL Console, for example we can write something like this
+  'socket.emit('createMessage', {from: 'Andrew', text: 'This should worl!'});' and push enter to send it, NOW
+  this message will be sent to EVERY single user CONNECTED to our application, in our case we would see this
+  messaged printend on BOTH the page(so EVEN on the page of the user who SENT the "message") */
   socket.on("createMessage", message => {
     console.log("createMessage", message);
+    io.emit("newMessage", {
+      from: message.from,
+      text: message.text,
+      /* This 'createdAt' property will get generated ONLY by the Server to PREVENT a specific Client from
+      SPOOFING(imbrogliare) when a message was created */
+      createdAt: new Date().getTime()
+    });
   });
 
   // 'connection' and 'disconnect' are BUILT-IN Events
