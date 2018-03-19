@@ -52,6 +52,18 @@ we ALSO see this "New user connected" message INSIDE the Terminal */
 io.on("connection", socket => {
   console.log("New user connected");
 
+  socket.emit("newMessage", {
+    from: "Admin",
+    text: "Welcome to the chat app",
+    createdAt: new Date().getTime()
+  });
+
+  socket.broadcast.emit("newMessage", {
+    from: "Admin",
+    text: "New user joined",
+    createdAt: new Date().getTime()
+  });
+
   /* We're going to use this 'emit' method on BOTH the Client AND the Server to EMIT Events, 'emit' is REALLY
   similar to the listeners Events BUT in this case we're NOT listening to an Event, we're CREATING the Event.
   The FIRST argument is going to be the NAME of Event we want to EMIT and we have to match it EXACTLY as we
@@ -85,6 +97,22 @@ io.on("connection", socket => {
       SPOOFING(imbrogliare) when a message was created */
       createdAt: new Date().getTime()
     });
+    /* BROADCASTING is the term for EMITTING an Event to EVERYBODY(so to all the user CONNECTED to our Server)
+    EXCEPT for OURSELF(so the User who SENT the actual EVENT). To "BROADCAST" we have to SPECIFY the individual
+    SOCKET, and this lets the 'Socket.io' library KNOW which user SHOULDN'T get the EVENT, NOW this 'broadcast'
+    has its OWN 'emit' FUNCTION that is like the 'emit' we used on the 'socket' OR on 'io' with the DIFFERENCE
+    to WHO the Event gets SENT, because this 'emit' is going to send the Event to EVERYBODY but THIS socket,
+    which means that if we FIRE a 'createMessage' EVENT, the 'newMessage' Event will fire to EVERYBODY but 
+    ourself and THAT is EXACTLY what we're doing here. So NOW with all of this in place we're NOT going to see
+    the 'message' we send BUT everybody else WILL, so if we now restart the Server and send a message from the
+    DEV TOOL Console we will see EXACTLY this, so that the user who SENT the actual message will NOT see it BUT
+    everybody ELSE will and this happen because we BROADCASTED the Event, which means that it ONLY got received
+    by OTHER connections */
+    // socket.broadcast.emit("newMessage", {
+    //   from: message.from,
+    //   text: message.text,
+    //   createdAt: new Date().getTime()
+    // });
   });
 
   // 'connection' and 'disconnect' are BUILT-IN Events
