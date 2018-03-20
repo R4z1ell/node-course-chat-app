@@ -106,6 +106,20 @@ let's now move on the SERVER where adding this "Acknowledgement' is also going t
 //   }
 // );
 
+socket.on("newLocationMessage", function(message) {
+  var li = jQuery("<li></li>");
+  // The 'target='_blank' will open this link in a NEW Tab on the Browser when clicked
+  var a = jQuery("<a target='_blank'>My current location</a>");
+
+  li.text(`${message.from}: `);
+  /* We can SET and FETCH attributes on a JQUERY Selected Element using this 'attr' METHOD, if we specify TWO
+  arguments(inside this 'attr' method) we'll actually SET the value of the "href" attribute to the 'message.url'
+  VALUE */
+  a.attr("href", message.url);
+  li.append(a);
+  jQuery("#messages").append(li);
+});
+
 /* Here below we're SELECTING our 'form'(the one we have created inside the 'index.html' file) with 'jQuery' 
 and then we're calling the 'on' function where we pass as the FIRST argument the NAME of the "Event Listener"
 that in our case is 'submit' and as SECOND argument a FUNCTION that is going to FIRE when a USER tries to SUBMIT
@@ -128,5 +142,35 @@ jQuery("#message-form").on("submit", function(e) {
       text: jQuery("[name=message]").val()
     },
     function() {}
+  );
+});
+
+var locationButton = jQuery("#send-location");
+locationButton.on("click", function() {
+  /* This 'navigator.geolocation' below is a GLOBAL Object available INSIDE the Browser and IF this Object EXISTS
+  (because not ALL Browser have it) the geolocation SERVICES are available. So all we're doing here below is
+  verifying if the user has ACCESS to the 'Geolocation API' pretty much */
+  if (!navigator.geolocation) {
+    return alert("Geolocation not supported by your browser.");
+  }
+
+  /* This 'getCurrentPosition' method(available on the 'geolocation' Object) below is used to OBTAIN the User's 
+   CURRENT location(if he ACCEPTS to give those information), so the COORDINATES of his Location based off of 
+   the BROWSER. The 'getCurrentPosition' takes TWO Functions as arguments, the FIRST one is our SUCCESS Function
+   that is going to get called with the LOCATION Information, and the SECOND Function is the one we use in case
+   or ERRORS, so if something goes WRONG and we're not able to fetch his location */
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      /* Now that we've created this NEW 'createLocationMessage' EVENT, we can go ahead and LISTEN for it over
+      in the Server and when we GET it we're going to pass THIS Data(so the 'latitude' and 'longitude') along
+      to ALL the CONNECTED Users */
+      socket.emit("createLocationMessage", {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      });
+    },
+    function() {
+      alert("Unable to fetch location.");
+    }
   );
 });

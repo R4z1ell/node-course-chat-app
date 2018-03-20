@@ -9,7 +9,7 @@ makes it REALLY easy to setup an HTTP Server, "Socket.IO" makes it dead SIMPLE t
 library and we're going to use BOTH to setup "Web Sockets" */
 const socketIO = require("socket.io");
 
-var { generateMessage } = require("./utils/message");
+var { generateMessage, generateLocationMessage } = require("./utils/message");
 /* This 'path.join' below is a method that JOIN ALL given PATH segments TOGETHER and then NORMALIZES the 
 resulting PATH.  */
 const publicPath = path.join(__dirname, "../public");
@@ -131,6 +131,17 @@ io.on("connection", socket => {
     //   text: message.text,
     //   createdAt: new Date().getTime()
     // });
+  });
+
+  /* Here below we're DEFINING the LISTENER for the 'createLocationMessage' EVENT, as we can see HERE on the
+  'server.js' we're using Node.js so we CAN use ES6 Features(like ARROW Function) differently from the 'index.js'
+  file where we HAVE to use REGULAR Function becase we know that the BROWSER doesn't support ES6, so this was
+  just a little reminder. */
+  socket.on("createLocationMessage", coords => {
+    io.emit(
+      "newLocationMessage",
+      generateLocationMessage("Admin", coords.latitude, coords.longitude)
+    );
   });
 
   // 'connection' and 'disconnect' are BUILT-IN Events
