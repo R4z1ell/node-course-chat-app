@@ -13,7 +13,7 @@ classical way. We're ALSO going to REMOVE this JavaScript code from this 'index.
 SEPARATE file(to 'index.js') because THIS is the best practice */
 socket.on("connect", function() {
   /* This message will SHOW inside the CONSOLE of the Chrome Browser in the Dev Tools. As soon as the Connection 
-HAPPENS, the Client and the Server they BOTH had that EVENT fired, the Client pint the message "Connected to 
+HAPPENS, the Client and the Server they BOTH had that EVENT fired, the Client print the message "Connected to 
 server" and the Server prints "New user connected"(we have this message inside the 'server.js' file) */
   console.log("Connected to server");
   /* We're using this 'socket.emit' RIGHT here inside the Callback because we DON'T want to emit the Event
@@ -51,4 +51,82 @@ with ALL the data inside it printed to the screen, so we were able to in REAL TI
 BUT Event DATA from the Server to the Client which is something we could NEVER do with an HTTP API */
 socket.on("newMessage", function(message) {
   console.log("newMessage", message); // This message will be visible in the CONSOLE of the Browser
+
+  /* When a NEW message comes IN we want to ADD something INSIDE the "Ordered List"(that we have created inside
+the 'index.html' file) so that it gets RENDERED to the screen. So we can do it here below by MODIFYING this
+Callback Function when a NEW message arrives, the FIRST thing we're going to do is CREATE a LIST ITEM(the 'li'
+variable) and we're going to do this ONCE again using JQUERY. This time THOUGH we're going to use JQUERY in a
+DIFFERENT way, INSTEAD of using JQUERY to SELECT an element we're going to use JQUERY to CREATE an element and
+THEN we can MODIFY that element and ADD it into the markup making it VISIBLE on the Browser */
+  var li = jQuery("<li></li>");
+  li.text(`${message.from}: ${message.text}`);
+
+  /* Now that we're created that NEW element(the 'li' variable above) we can APPEND it to our 'Ordered List' with 
+the 'append' method that will add our element as the LAST child, SO if there are already 3 items in the list for 
+example, this NEW element will show up BELOW those three as thee FORTH item in our 'ol'(Ordered List). So all we
+have to do is CALL the 'append' function and pass in our 'li' element */
+  jQuery("#messages").append(li);
+});
+
+/* 'Event ACKNOWLEDGEMENTS' are a FANTASTIC feature inside the 'socket.io' Library. In order to illustrate WHAT
+they are and WHY we'd ever want to use them we're going to talk about the TWO Events we have INSIDE our chat 
+application. Right now we have the 'newMessage' Event that gets emitted by the Server and gets listened by the
+Client, and then we've the 'createMessage' Event that is the one we're going to UPDATE, this Event gets emitted
+by the Client and listened by the Server. NOW, the PROBLEM with our 'createMessage' Event is that te DATA flows
+only in ONE direction(from the Client to the Server) so if the Server receives INVALID data it has NO WAY to
+let the Client KNOW that something went WRONG, and so what we NEED is a way to ACKNOWLEDGE we got a request and
+an OPTION to send some data BACK. So in THIS case we're going to ADD an ACKNOWLEDGEMENT for 'createMessage', IF
+the Client EMITS a VALID request with valid DATA we're going to acknowledge it sending back NO ERROR message BUT
+if the DATA that is sent back is actually INVALID we're going to acknowledge it by sending back the ERROR so that
+the Client knows EXACTLY what he needs to DO to send VALID request. Now the DATA flowing from the Server to the
+Client is going to be achieved with a CALLBACK Function, the "Acknowledgement' could be ANYHING we like, could be
+a 'message' like "Was the message data valid?" OR if we're creating an email application we might ONLY send the
+'Acknowledgement' back to the Client when the email was SUCCESSFULLY sent. Setting up "Acknowledgement' is not 
+that bad if we already have a LISTENER in place, now in OUR case the LISTENER happens to be on the SERVER and the
+emitter happens to be on the Client BUT "Acknowledgement" ALSO work in the OTHER Direction, so we can EMIT an
+Event from the Server and ACKNOWLEDGE it from the CLIENT. With ALL of this in place we now have a "STANDARD Event 
+Emitter" and a "Standard Event Listener", we can now go ahed and start our server with nodemon to make sure that 
+everythings still works fine. From the Console we see that ALL is FINE, now the GOAL here was to send an 
+"Acknowledgement" from the Server BACK to the Client that we actually GOT the DATA. In order to get this done 
+we've to make a FEW changes to BOTH the Listener and the Emitter, if we ONLY make a change to ONE of these
+two is NOT going to WORK as expected, in our case we're going to start with the Event EMITTER, we want a WAY to
+run some code when the "Acknowledgement" has been sent from the Server BACK to the Client and in order to get
+that done we're going to add a THIRD argument that is going to be a CALLBACK Function that is going to FIRE when
+the "Acknowledgement" ARRIVES at the CLIENT and we can do ANYTHING we like but for now we're just going to print
+a 'message' with the 'console.log'. And this was ALL we needed to do to ADD "Acknowledgement" on the CLIENT, 
+let's now move on the SERVER where adding this "Acknowledgement' is also going to be pretty simple */
+// socket.emit(
+//   "createMessage",
+//   {
+//     from: "Frank",
+//     text: "Hi"
+//   },
+//   function(data) {
+//     console.log("Got it", data);
+//   }
+// );
+
+/* Here below we're SELECTING our 'form'(the one we have created inside the 'index.html' file) with 'jQuery' 
+and then we're calling the 'on' function where we pass as the FIRST argument the NAME of the "Event Listener"
+that in our case is 'submit' and as SECOND argument a FUNCTION that is going to FIRE when a USER tries to SUBMIT
+the FORM. This function will take ONE argument, an 'e' Event argument and we're going to ACCESS it to PREVENT 
+the DEFAULT behavior of the FORM that causes the page to REFRESH(when we click the button to submit the form)
+inside the Browser */
+jQuery("#message-form").on("submit", function(e) {
+  e.preventDefault();
+
+  socket.emit(
+    "createMessage",
+    {
+      from: "User",
+      /* Here below we're SELECTING our 'input' element(inside the 'index.html' file) by HIS 'name' that is
+    'message' in our case, so this JQUERY Selector will select ALL the element that has a 'name' attribute EQUAL
+    to 'message' which in our case is JUST one, and THEN we use the 'val' METHOD to GET his VALUE. With this in
+    place we can now go ahead and ADD our CALLBACK Function for our 'Acknowledgement'(that for now doesn't really 
+    do anything and this is fine) BUT we HAVE to ADD it in order to FULFILL(soddisfare) the "Acknowledgement" 
+    setup we currently have in place */
+      text: jQuery("[name=message]").val()
+    },
+    function() {}
+  );
 });

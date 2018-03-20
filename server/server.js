@@ -57,9 +57,15 @@ io.on("connection", socket => {
   we have the SAME exact functionality as before BUT now we're using a the 'generateMessage' function to GENERATE
   that Object for US which is going to make SCALING a LOT easier and it's ALSO going to make updating what is
   inside of a message much easier as well */
-  socket.emit("newMessage", generateMessage("Admin", "Welcome to the chat app"));
+  socket.emit(
+    "newMessage",
+    generateMessage("Admin", "Welcome to the chat app")
+  );
 
-  socket.broadcast.emit("newMessage", generateMessage("Admin", "New user joined"));
+  socket.broadcast.emit(
+    "newMessage",
+    generateMessage("Admin", "New user joined")
+  );
 
   /* We're going to use this 'emit' method on BOTH the Client AND the Server to EMIT Events, 'emit' is REALLY
   similar to the listeners Events BUT in this case we're NOT listening to an Event, we're CREATING the Event.
@@ -85,9 +91,30 @@ io.on("connection", socket => {
   'socket.emit('createMessage', {from: 'Andrew', text: 'This should worl!'});' and push enter to send it, NOW
   this message will be sent to EVERY single user CONNECTED to our application, in our case we would see this
   messaged printend on BOTH the page(so EVEN on the page of the user who SENT the "message") */
-  socket.on("createMessage", message => {
+  socket.on("createMessage", (message, callback) => {
     console.log("createMessage", message);
     io.emit("newMessage", generateMessage(message.from, message.text));
+    /* This is HOW we add "Acknowledgement" in the SERVER, inside the Callback we add as SECOND argument a 
+    FUNCTION named 'callback' and THEN we call this function here below to "Acknowledge" that we got THAT 
+    request. When we CALL this Function(so this 'callback'), the Function itself is going to SEND an EVENT back 
+    to the CLIENT and is going to call the FUNCTION as we have it inside the the 'socket.emit' of the 'index.js'
+    file(so pretty much THIS 'callback' function is going to EXECUTE the 'function () { console.log("Got it")}
+    we have INSIDE the 'socket.emit'). Now if we restart our Server we see from the Browser Console that we have
+    the message 'Got it' printed to the screen, and THIS means that our DATA successfully WENT to the SERVER,
+    and we can PROVE this by seeing that INSIDE the TERMINAL we have the 'createMessage'. So the server
+    ACKNOWLEDGED it got the DATA by calling the 'callback' function and RIGHT inside the Console of the Browser
+    we have the 'Got it' message. NOW "Acknowledgments" are pretty useful BUT they're EVEN more useful when we
+    send DATA back, if the DATA was for example INVALID we probably want to send some ERRORS back, and we can
+    send DATA back by providing ONE argument this 'callback' Function below, if we want to add MULTIPLE things
+    we simply specify an OBJECT and we can then add as many things we want, in OUR case though we can send as
+    this ONLY argument a STRING(a simple message). THIS string is going to end up INSIDE the CALLBACK that we
+    have INSIDE the 'socket.emit' in the 'index.js' file, which means that we can create a VARIABLE for THAT
+    value called 'data'(or anything we like) and we can PRINT it to the screen(like we're doing) for example.
+    So NOW inside the CONSOLE of the Browser we see 'Got it This is from server', meaning we GOT the
+    "Acknowledgement" and ALSO the data that was sent from the SERVER(so the 'This is from the server' message)
+    to the CLIENT. So ACKNOWLEDGEMENTS allow the 'Request LISTENER' to SEND something BACK to the
+    'Request EMITTER' */
+    callback("This is from the server.");
     /* BROADCASTING is the term for EMITTING an Event to EVERYBODY(so to all the user CONNECTED to our Server)
     EXCEPT for OURSELF(so the User who SENT the actual EVENT). To "BROADCAST" we have to SPECIFY the individual
     SOCKET, and this lets the 'Socket.io' library KNOW which user SHOULDN'T get the EVENT, NOW this 'broadcast'
