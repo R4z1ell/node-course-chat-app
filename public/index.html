@@ -5,19 +5,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 
-<body>
-    <p>Welcome to the chat app</p>
+<body class="chat">
 
-    <!-- Ordered List -->
-    <ol id="messages"></ol>
+    <div class="chat__sidebar">
+        <h3>People</h3>
+        <div id="users"></div>
+    </div>
 
-    <form id="message-form">
-        <input name="message" type="text" placeholder="Message" />
-        <button>Send</button>
-    </form>
-    <button id="send-location">Send Location</button>
+    <div class="chat__main">
+        <!-- Ordered List -->
+        <ol id="messages" class="chat__messages"></ol>
+
+        <div class="chat__footer">
+            <form id="message-form">
+                <!-- The 'autofocus' attribute is a BOOLEN and specifies that an <input> element should 
+                automatically get focus when the page loads(so pretty much when we reload the browser the input
+                gets AUTOMATICALLY selected so that we don't have to do it manually). The 'autocomplete' attribute
+                instead SPECIFIES whether or not an input field should have autocomplete enabled, so that when we
+                type something in this input the browser will NOT display options to fill in the field, based on 
+                earlier typed values-->
+                <input name="message" type="text" placeholder="Message" autofocus autocomplete="off" />
+                <button>Send</button>
+            </form>
+            <button id="send-location">Send location</button>
+        </div>
+
+    </div>
 
     <!-- This below is how we import the "Socket.io" LIBRARY, with this in place NOW inside the Browser we have
     access to ALL sorts of METHODS available in the Library itself, one of those methods is going to let us

@@ -114,7 +114,7 @@ io.on("connection", socket => {
     "Acknowledgement" and ALSO the data that was sent from the SERVER(so the 'This is from the server' message)
     to the CLIENT. So ACKNOWLEDGEMENTS allow the 'Request LISTENER' to SEND something BACK to the
     'Request EMITTER' */
-    callback("This is from the server.");
+    callback();
     /* BROADCASTING is the term for EMITTING an Event to EVERYBODY(so to all the user CONNECTED to our Server)
     EXCEPT for OURSELF(so the User who SENT the actual EVENT). To "BROADCAST" we have to SPECIFY the individual
     SOCKET, and this lets the 'Socket.io' library KNOW which user SHOULDN'T get the EVENT, NOW this 'broadcast'

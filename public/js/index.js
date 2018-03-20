@@ -129,6 +129,8 @@ inside the Browser */
 jQuery("#message-form").on("submit", function(e) {
   e.preventDefault();
 
+  var messageTextbox = jQuery("[name=message]");
+
   socket.emit(
     "createMessage",
     {
@@ -139,9 +141,12 @@ jQuery("#message-form").on("submit", function(e) {
     place we can now go ahead and ADD our CALLBACK Function for our 'Acknowledgement'(that for now doesn't really 
     do anything and this is fine) BUT we HAVE to ADD it in order to FULFILL(soddisfare) the "Acknowledgement" 
     setup we currently have in place */
-      text: jQuery("[name=message]").val()
+      text: messageTextbox.val()
     },
-    function() {}
+    function() {
+      // Here below we're CLEARING the 'input' element AFTER an user has SUBMITTED his message to the chat
+      messageTextbox.val("");
+    }
   );
 });
 
@@ -154,6 +159,13 @@ locationButton.on("click", function() {
     return alert("Geolocation not supported by your browser.");
   }
 
+  /* Here below we're setting the 'disabled' ATTRIBUTE of the "Send Location" BUTTON equal to the 'disabled'
+  VALUE. A disabled button is unusable and un-clickable and we're doing this to PREVENT a User from SPAMMING
+  this button WHILE the process(of sending the URL with our LOCATION to the chat) is OCCURRING, we're also
+  CHANGING the TEXT of this button to 'Sending location..." WHILE the process of sending our url location to
+  the chat is in PROCESS */
+  locationButton.attr("disabled", "disabled").text("Sending location...");
+
   /* This 'getCurrentPosition' method(available on the 'geolocation' Object) below is used to OBTAIN the User's 
    CURRENT location(if he ACCEPTS to give those information), so the COORDINATES of his Location based off of 
    the BROWSER. The 'getCurrentPosition' takes TWO Functions as arguments, the FIRST one is our SUCCESS Function
@@ -161,6 +173,8 @@ locationButton.on("click", function() {
    or ERRORS, so if something goes WRONG and we're not able to fetch his location */
   navigator.geolocation.getCurrentPosition(
     function(position) {
+      // This command will REMOVE the 'disabled' attribute we defined above from the BUTTON, re-enabling it
+      locationButton.removeAttr("disabled").text("Sending location");
       /* Now that we've created this NEW 'createLocationMessage' EVENT, we can go ahead and LISTEN for it over
       in the Server and when we GET it we're going to pass THIS Data(so the 'latitude' and 'longitude') along
       to ALL the CONNECTED Users */
@@ -170,6 +184,7 @@ locationButton.on("click", function() {
       });
     },
     function() {
+      locationButton.removeAttr("disabled").text("Sending location");
       alert("Unable to fetch location.");
     }
   );
