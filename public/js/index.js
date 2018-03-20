@@ -50,7 +50,7 @@ we save and restart our server we'll see from the CONSOLE inside the Browser tha
 with ALL the data inside it printed to the screen, so we were able to in REAL TIME to pass NOT only an Event
 BUT Event DATA from the Server to the Client which is something we could NEVER do with an HTTP API */
 socket.on("newMessage", function(message) {
-  console.log("newMessage", message); // This message will be visible in the CONSOLE of the Browser
+  var formattedTime = moment(message.createdAt).format("h:mm a");
 
   /* When a NEW message comes IN we want to ADD something INSIDE the "Ordered List"(that we have created inside
 the 'index.html' file) so that it gets RENDERED to the screen. So we can do it here below by MODIFYING this
@@ -59,7 +59,7 @@ variable) and we're going to do this ONCE again using JQUERY. This time THOUGH w
 DIFFERENT way, INSTEAD of using JQUERY to SELECT an element we're going to use JQUERY to CREATE an element and
 THEN we can MODIFY that element and ADD it into the markup making it VISIBLE on the Browser */
   var li = jQuery("<li></li>");
-  li.text(`${message.from}: ${message.text}`);
+  li.text(`${message.from} ${formattedTime}: ${message.text}`);
 
   /* Now that we're created that NEW element(the 'li' variable above) we can APPEND it to our 'Ordered List' with 
 the 'append' method that will add our element as the LAST child, SO if there are already 3 items in the list for 
@@ -107,11 +107,12 @@ let's now move on the SERVER where adding this "Acknowledgement' is also going t
 // );
 
 socket.on("newLocationMessage", function(message) {
+  var formattedTime = moment(message.createdAt).format("h:mm a");
   var li = jQuery("<li></li>");
   // The 'target='_blank' will open this link in a NEW Tab on the Browser when clicked
   var a = jQuery("<a target='_blank'>My current location</a>");
-
-  li.text(`${message.from}: `);
+  
+  li.text(`${message.from} ${formattedTime}: `);
   /* We can SET and FETCH attributes on a JQUERY Selected Element using this 'attr' METHOD, if we specify TWO
   arguments(inside this 'attr' method) we'll actually SET the value of the "href" attribute to the 'message.url'
   VALUE */
