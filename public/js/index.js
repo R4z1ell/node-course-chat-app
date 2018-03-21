@@ -5,6 +5,45 @@ and storing it inside a 'socket' variable and THIS variable is CRITICAL to commu
 need in order to LISTEN for Data from the Server AND in order to send Data to the Server. */
 var socket = io();
 
+// This function is used to AUTOMATICALLY scroll the chat page when we're at the BOTTOM of it(so AUTOSCROLLING)
+function scrollToBottom() {
+  // Selectors
+  var messages = jQuery("#messages");
+  // Here we're selecting the LAST 'li' children, so  the LAST message in our CHAT pretty much
+  var newMessage = messages.children("li:last-child");
+  /* This 'clientHeight' variable is what the User ACTUALLY see, so the VISIBLE Area of the CONTAINER. Instead
+  the 'clientHeight' we're PASSING inside the 'prop' method is an HTML DOM Property that returns the VIEWABLE 
+  height of an element in pixels, INCLUDING padding, but NOT the border, scrollbar or margin. */
+  var clientHeight = messages.prop("clientHeight");
+  /* This 'scrollTop' property we're passing inside the 'prop' method is an HTML DOM Property that returns the 
+  NUMBER of pixels an element's content is scrolled vertically */
+  var scrollTop = messages.prop("scrollTop");
+  /* This 'scrollHeight' variable is the ENTIRE height of our messages CONTAINER(that contains ALL the messages
+  present in the chat) regardless of how MUCH is actually visible inside of the Browser, this means that if we
+  have messages BEFORE and AFTER what the User can see they're STILL going to be accounted for the TOTAL height
+  of this CONTAINER. The 'scrollHeight' property we're passing inside the 'prop' method is an HTML DOM Property
+  that returns the ENTIRE height of an element in PIXELS, including padding, but NOT the border, scrollbar or 
+  margin.*/
+  var scrollHeight = messages.prop("scrollHeight");
+  /* This 'innerHeight' is a JQUERY method that will CALCULATE the HEIGHT of this 'newMessage' taking into
+  account the element height AND the PADDING(but not an eventual BORDER) */
+  var newMessageHeight = newMessage.innerHeight();
+  /* This 'prev' is a JQUERY method that select the IMMEDIATELY preceding sibling, in our case will select the
+  preciding sibling of the 'newMessage' and calculate his HEIGHT with the 'innerHeight' method */
+  var lastMessageHeight = newMessage.prev().innerHeight();
+
+  if (
+    clientHeight + scrollTop + newMessageHeight + lastMessageHeight >=
+    scrollHeight
+  ) {
+    /* Here we're pretty much moving to the BOTTOM of the chat using the 'scrollTop' JQUERY function that SET
+    the CURRENT vertical position of the Scrollbar for EACH matched element. The VERTICAL Scroll Position is
+    pretty much the NUMBER of Pixels that are HIDDEN from the view ABOVE the scrollable area, so in our case
+    we're SETTING the POSITION of the 'messages' CONTAINER */
+    messages.scrollTop(scrollHeight);
+  }
+}
+
 /* REMEMBER that when we're using JavaScript INSIDE the CLIENT(like we're doing in THIS case) we want to
 AVOID using ES6 Features like ARROW FUNCTION for example because even though it WILL work on Chrome it will NOT 
 work on Safari, or older version of Firefox or on a mobile Phone or Internet Explorer and so on where our 
@@ -61,6 +100,7 @@ socket.on("newMessage", function(message) {
   });
 
   jQuery("#messages").append(html);
+  scrollToBottom();
 });
 
 /* 'Event ACKNOWLEDGEMENTS' are a FANTASTIC feature inside the 'socket.io' Library. In order to illustrate WHAT
@@ -111,6 +151,7 @@ socket.on("newLocationMessage", function(message) {
   });
 
   jQuery("#messages").append(html);
+  scrollToBottom();
 });
 
 /* Here below we're SELECTING our 'form'(the one we have created inside the 'index.html' file) with 'jQuery' 
