@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="/css/styles.css">
+    <title>Join | ChatApp</title>
+</head>
+
+<body class="chat">
+
+    <div class="chat__sidebar">
+        <h3>People</h3>
+        <div id="users"></div>
+    </div>
+
+    <div class="chat__main">
+        <!-- Ordered List -->
+        <ol id="messages" class="chat__messages"></ol>
+
+        <div class="chat__footer">
+            <form id="message-form">
+                <!-- The 'autofocus' attribute is a BOOLEN and specifies that an <input> element should 
+                automatically get focus when the page loads(so pretty much when we reload the browser the input
+                gets AUTOMATICALLY selected so that we don't have to do it manually). The 'autocomplete' attribute
+                instead SPECIFIES whether or not an input field should have autocomplete enabled, so that when we
+                type something in this input the browser will NOT display options to fill in the field, based on 
+                earlier typed values-->
+                <input name="message" type="text" placeholder="Message" autofocus autocomplete="off" />
+                <button>Send</button>
+            </form>
+            <button id="send-location">Send location</button>
+        </div>
+
+    </div>
+
+    <!-- This below is the TEMPLATE created with the help of the "Mustache" Library that let us pass DATA inside
+    this TEMPLATE, and this is a much more SCALABLE solution than writing ALL the JQUERY code like we were doing 
+    before inside the 'index.js' file -->
+    <script id="message-template" type="text/template">
+        <li class="message">
+            <div class="message__title">
+                <h4>{{from}}</h4>
+                <span>{{createdAt}}</span>
+            </div>
+            <div class="message__body">
+                <p>{{text}}</p>
+            </div>
+        </li>
+    </script>
+
+    <script id="location-message-template" type="text/template">
+        <li class="message">
+            <div class="message__title">
+                <h4>{{from}}</h4>
+                <span>{{createdAt}}</span>
+            </div>
+            <div class="message__body">
+                <p>
+                   <a href="{{url}}" target="_blank">My current location</a> 
+                </p>
+            </div>
+        </li>
+    </script>
+
+    <!-- This below is how we import the "Socket.io" LIBRARY, with this in place NOW inside the Browser we have
+    access to ALL sorts of METHODS available in the Library itself, one of those methods is going to let us
+    INITIATE a connection request and that is EXACTLY what we're going to do here down below(in the SECOND 
+    'script') -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/libs/jquery-3.3.1.min.js"></script>
+    <script src="/js/libs/moment.js"></script>
+    <script src="/js/libs/mustache.js"></script>
+    <script src="/js/chat.js"></script>
+</body>
+
+</html>
