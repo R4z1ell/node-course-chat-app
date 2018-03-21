@@ -51,21 +51,16 @@ with ALL the data inside it printed to the screen, so we were able to in REAL TI
 BUT Event DATA from the Server to the Client which is something we could NEVER do with an HTTP API */
 socket.on("newMessage", function(message) {
   var formattedTime = moment(message.createdAt).format("h:mm a");
+  /* The 'html()' function will RETURN the markup we have INSIDE the 'message-template' element in our index.html
+  file and in our case we've a PARAGRAPH element there */
+  var template = jQuery("#message-template").html();
+  var html = Mustache.render(template, {
+    text: message.text,
+    from: message.from,
+    createdAt: formattedTime
+  });
 
-  /* When a NEW message comes IN we want to ADD something INSIDE the "Ordered List"(that we have created inside
-the 'index.html' file) so that it gets RENDERED to the screen. So we can do it here below by MODIFYING this
-Callback Function when a NEW message arrives, the FIRST thing we're going to do is CREATE a LIST ITEM(the 'li'
-variable) and we're going to do this ONCE again using JQUERY. This time THOUGH we're going to use JQUERY in a
-DIFFERENT way, INSTEAD of using JQUERY to SELECT an element we're going to use JQUERY to CREATE an element and
-THEN we can MODIFY that element and ADD it into the markup making it VISIBLE on the Browser */
-  var li = jQuery("<li></li>");
-  li.text(`${message.from} ${formattedTime}: ${message.text}`);
-
-  /* Now that we're created that NEW element(the 'li' variable above) we can APPEND it to our 'Ordered List' with 
-the 'append' method that will add our element as the LAST child, SO if there are already 3 items in the list for 
-example, this NEW element will show up BELOW those three as thee FORTH item in our 'ol'(Ordered List). So all we
-have to do is CALL the 'append' function and pass in our 'li' element */
-  jQuery("#messages").append(li);
+  jQuery("#messages").append(html);
 });
 
 /* 'Event ACKNOWLEDGEMENTS' are a FANTASTIC feature inside the 'socket.io' Library. In order to illustrate WHAT
@@ -108,17 +103,14 @@ let's now move on the SERVER where adding this "Acknowledgement' is also going t
 
 socket.on("newLocationMessage", function(message) {
   var formattedTime = moment(message.createdAt).format("h:mm a");
-  var li = jQuery("<li></li>");
-  // The 'target='_blank' will open this link in a NEW Tab on the Browser when clicked
-  var a = jQuery("<a target='_blank'>My current location</a>");
-  
-  li.text(`${message.from} ${formattedTime}: `);
-  /* We can SET and FETCH attributes on a JQUERY Selected Element using this 'attr' METHOD, if we specify TWO
-  arguments(inside this 'attr' method) we'll actually SET the value of the "href" attribute to the 'message.url'
-  VALUE */
-  a.attr("href", message.url);
-  li.append(a);
-  jQuery("#messages").append(li);
+  var template = jQuery("#location-message-template").html();
+  var html = Mustache.render(template, {
+    from: message.from,
+    url: message.url,
+    createdAt: formattedTime
+  });
+
+  jQuery("#messages").append(html);
 });
 
 /* Here below we're SELECTING our 'form'(the one we have created inside the 'index.html' file) with 'jQuery' 

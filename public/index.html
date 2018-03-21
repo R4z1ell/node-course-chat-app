@@ -35,6 +35,35 @@
 
     </div>
 
+    <!-- This below is the TEMPLATE created with the help of the "Mustache" Library that let us pass DATA inside
+    this TEMPLATE, and this is a much more SCALABLE solution than writing ALL the JQUERY code like we were doing 
+    before inside the 'index.js' file -->
+    <script id="message-template" type="text/template">
+        <li class="message">
+            <div class="message__title">
+                <h4>{{from}}</h4>
+                <span>{{createdAt}}</span>
+            </div>
+            <div class="message__body">
+                <p>{{text}}</p>
+            </div>
+        </li>
+    </script>
+
+    <script id="location-message-template" type="text/template">
+        <li class="message">
+            <div class="message__title">
+                <h4>{{from}}</h4>
+                <span>{{createdAt}}</span>
+            </div>
+            <div class="message__body">
+                <p>
+                   <a href="{{url}}" target="_blank">My current location</a> 
+                </p>
+            </div>
+        </li>
+    </script>
+
     <!-- This below is how we import the "Socket.io" LIBRARY, with this in place NOW inside the Browser we have
     access to ALL sorts of METHODS available in the Library itself, one of those methods is going to let us
     INITIATE a connection request and that is EXACTLY what we're going to do here down below(in the SECOND 
@@ -42,6 +71,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/libs/jquery-3.3.1.min.js"></script>
     <script src="/js/libs/moment.js"></script>
+    <script src="/js/libs/mustache.js"></script>
     <script src="/js/index.js"></script>
 </body>
 
