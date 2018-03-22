@@ -142,8 +142,14 @@ io.on("connection", socket => {
   this message will be sent to EVERY single user CONNECTED to our application, in our case we would see this
   messaged printend on BOTH the page(so EVEN on the page of the user who SENT the "message") */
   socket.on("createMessage", (message, callback) => {
-    console.log("createMessage", message);
-    io.emit("newMessage", generateMessage(message.from, message.text));
+    var user = users.getUser(socket.id);
+
+    if (user && isRealString(message.text)) {
+      io
+        .to(user.room)
+        .emit("newMessage", generateMessage(user.name, message.text));
+    }
+
     /* This is HOW we add "Acknowledgement" in the SERVER, inside the Callback we add as SECOND argument a 
     FUNCTION named 'callback' and THEN we call this function here below to "Acknowledge" that we got THAT 
     request. When we CALL this Function(so this 'callback'), the Function itself is going to SEND an EVENT back 
@@ -188,10 +194,16 @@ io.on("connection", socket => {
   file where we HAVE to use REGULAR Function becase we know that the BROWSER doesn't support ES6, so this was
   just a little reminder. */
   socket.on("createLocationMessage", coords => {
-    io.emit(
-      "newLocationMessage",
-      generateLocationMessage("Admin", coords.latitude, coords.longitude)
-    );
+    var user = users.getUser(socket.id);
+
+    if (user) {
+      io
+        .to(user.room)
+        .emit(
+          "newLocationMessage",
+          generateLocationMessage(user.name, coords.latitude, coords.longitude)
+        );
+    }
   });
 
   // 'connection' and 'disconnect' are BUILT-IN Events

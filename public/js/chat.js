@@ -112,7 +112,7 @@ socket.on("disconnect", function() {
 socket.on("updateUserList", function(users) {
   var ol = jQuery("<ol></ol>");
 
-  users.forEach(function (user) {
+  users.forEach(function(user) {
     ol.append(jQuery("<li></li>").text(user));
   });
 
@@ -209,7 +209,6 @@ jQuery("#message-form").on("submit", function(e) {
   socket.emit(
     "createMessage",
     {
-      from: "User",
       /* Here below we're SELECTING our 'input' element(inside the 'index.html' file) by HIS 'name' that is
     'message' in our case, so this JQUERY Selector will select ALL the element that has a 'name' attribute EQUAL
     to 'message' which in our case is JUST one, and THEN we use the 'val' METHOD to GET his VALUE. With this in
