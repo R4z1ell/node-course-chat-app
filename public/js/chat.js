@@ -67,6 +67,37 @@ server" and the Server prints "New user connected"(we have this message inside t
   //   from: "Andrew",
   //   text: "Yup, that works for me."
   // });
+
+  /* This 'deparam' below is a FUNCTION that comes from the 'deparam.js' file inside our 'libs' folder that 
+  will help us CREATING an Object from query string parameters(so the one we have INSIDE the URL), in our case
+  we've joined the 'Node Course' ROOM with a name of 'Andrew' so in the URL we had the following 
+  'http://localhost:3000/chat.html?name=Andrew&room=Node+Course'. NOW this 'deparam' FUNCTION below will TAKE
+  our Query String parameters(?name=Andrew&room=Node+Course) and CONVERT it INTO the following Object
+  '{ name: "Andrew, room: "Node Course"}'. So NOW that we've this OBJECT we can go ahead and EMIT an EVENT,
+  the 'location' inside the 'windows.location.search' code is an OBJECT available on the GLOBAL 'window' Object,
+  this 'location' Object has MANY properties and ONE of those is the 'search' property that STORES the QUERY 
+  that we have INSIDE our URL(so this one in our case '?name=Andrew&room=Node+Course') */
+  var params = jQuery.deparam(window.location.search);
+
+  /* The CUSTOM EVENT that we're EMITTING here below is called 'join' and will be emitted from the CLIENT and
+  it's going to be LISTENED by the SERVER, when the Server HEARS this 'join' Event it's going to go through the
+  process of SETTING up the ROOM. Inside the 'emit' function we ALSO pass in the 'params' OBJECT we just created
+  above AND we also pass the "Acknowledgement" because if someone enter the ROOM we WANT to know THAT and if
+  someone DOESN'T we ALSO want to know that because if they DON'T join the ROOM it's most likely because they
+  provided INVALID Data which means that we want to KICK them BACK to our FORM, FORCING them to provide VALID
+  Data(so a valid name and a valid room name) */
+  socket.emit("join", params, function(err) {
+    if (err) {
+      alert(err);
+      /* IF there is an ERROR we're going to send the User BACK to the ROOT of our Application, we can do this
+      by CHANGING the 'href' property INSIDE the 'location' OBJECT(that we have inside the GLOBAL 'window' 
+      Object). There(so on this 'href' property) we can MANIPULATE which page the User is ON, so pretty much 
+      we're going to REDIRECT the User BACK to the ROOT page of our Application(that what the '/' means) */
+      window.location.href = "/";
+    } else {
+      console.log("No error");
+    }
+  });
 });
 
 /* Here below we call 'socket.on' again to LISTEN to an EVENT, the event in THIS case is the 'disconnect' and 
@@ -76,6 +107,16 @@ goes down the CLIENT is going to be able to DO something but for NOW that someth
 that we print on the screen */
 socket.on("disconnect", function() {
   console.log("Disconnected from server");
+});
+
+socket.on("updateUserList", function(users) {
+  var ol = jQuery("<ol></ol>");
+
+  users.forEach(function (user) {
+    ol.append(jQuery("<li></li>").text(user));
+  });
+
+  jQuery("#users").html(ol);
 });
 
 /* Here below we're LISTENING(thx to 'socket.on') to a CUSTOM EVENT named "newMessage" that we pass as FIRST 

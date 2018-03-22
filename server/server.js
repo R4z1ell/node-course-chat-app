@@ -10,6 +10,8 @@ library and we're going to use BOTH to setup "Web Sockets" */
 const socketIO = require("socket.io");
 
 var { generateMessage, generateLocationMessage } = require("./utils/message");
+const { isRealString } = require("./utils/validation");
+const { Users } = require("./utils/users");
 /* This 'path.join' below is a method that JOIN ALL given PATH segments TOGETHER and then NORMALIZES the 
 resulting PATH.  */
 const publicPath = path.join(__dirname, "../public");
@@ -30,6 +32,9 @@ instead of the Callback we can ACTUALLY provide the 'app' itself as the argument
 var server = http.createServer(app);
 // This is how we INTEGRATE our 'server' with "Socket.io"
 var io = socketIO(server);
+/* Here below we're creating a NEW instance of the 'Users' CLASS we're importing above, in THIS way we'll be able
+to use ALL the methods that we've on the 'Users' Class HERE in this 'server.js' FILE */
+var users = new Users();
 
 app.use(express.static(publicPath));
 
@@ -53,19 +58,64 @@ we ALSO see this "New user connected" message INSIDE the Terminal */
 io.on("connection", socket => {
   console.log("New user connected");
 
-  /* Here below we're using our newly created 'generateMessage' method that create a new Object for us, so now 
+  socket.on("join", (params, callback) => {
+    if (!isRealString(params.name) || !isRealString(params.room)) {
+      return callback("Name and room name are required.");
+    }
+    /* The NEXT step now is to actually use the 'socket.io' Library to JOIN Rooms, in this way we could also use
+    different methods to choose if EMIT the ROOM to EVERYBOODY connected to the Server or JUST to the People in
+    SPECIFIC Rooms, and THIS is EXACTLY what we're going to do. We WANT to EMIT Chat messages ONLY to the people
+    who ARE in the Room. So now in order to JOIN we use 'socket.join' that takes the NAME of the Room we want
+    to join and we already HAVE that value stored inside 'params.room' so we just pass it inside the 'join' 
+    method and THAT is. NOW we've a Room where ONLY the people inside it can share messages. We can also LEAVE
+    a specific Room by using the following code 'socket.leave("The Office Fans")'. Let's now have a look at ALL
+    the ways we've used to EMIT event on the SERVER, we've used 'io.emit' that EMIT to EVERY single User
+    connected to our Application and it's EXACTLY what we're doing inside the 'socket.on("createdMessage")'
+    where we have 'io.emit("newMessage'), so we're EMITTING to EVERYONE connected. Next up we've used 
+    'socket.broadcast.emit' and THIS as we know send the message to EVERYONE connected to the SOCKET server
+    expect for the CURRENT User, and the LAST one is 'socket.emit' that EMIT an Event specifically to ONE User.
+    Now we can take these Events and CONVERT them to their "Event Room' COUNTERPART, SO in order to send to a
+    SPECIFIC Room we're going to use the 'to' method like this 'io.to("The Office Fans").emit', so this is going
+    to send an Event to EVERYBODY connected to this "The Office Fans" ROOM. Now we can ALSO do the same for
+    'broadcast', meaning that we want to send an Event to EVERYBODY in a Room EXCEPT for the CURRENT User, in 
+    order to do this we use the following code 'socket.broadcast.to("The Office Fans").emit', THIS code will 
+    send an EVENT to EVERYBODY in that Room EXCEPT for the CURRENT User, so the ONE who's ACTUALLY calling it.
+    The LAST one that we've used(so the 'socket.emit') is the code will STILL going to use when we want to send
+    something to a SPECIFIC User, there is NO REASON to target an User by Room because we ONLY want to target a
+    SINGLE User, so selecting by Room will make no sense. */
+    socket.join(params.room);
+    // Here below we're REMOVING the User(that joined this 'params.room' above) from ANY potential PREVIOUS rooms
+    users.removeUser(socket.id);
+    users.addUser(socket.id, params.name, params.room);
+
+    /* NOW that we've UPDATED the list of Users connected to the Room with the code above we want to EMIT an
+    EVENT to EVERYONE in the Chat room */
+    io.to(params.room).emit("updateUserList", users.getUserList(params.room));
+
+    /* Here below we're using our newly created 'generateMessage' method that create a new Object for us, so now 
   we have the SAME exact functionality as before BUT now we're using a the 'generateMessage' function to GENERATE
   that Object for US which is going to make SCALING a LOT easier and it's ALSO going to make updating what is
   inside of a message much easier as well */
-  socket.emit(
-    "newMessage",
-    generateMessage("Admin", "Welcome to the chat app")
-  );
+    socket.emit(
+      "newMessage",
+      generateMessage("Admin", "Welcome to the chat app")
+    );
 
-  socket.broadcast.emit(
-    "newMessage",
-    generateMessage("Admin", "New user joined")
-  );
+    /* In this case below we're BROADCASTING to EVERY User connected EXACTLY to THIS 'params.room' ROOM, we then
+    EMIT a 'newMessage' letting everyone in that ROOM know that a NEW User has joined returning EXACTLY his name,
+    so the name of the User that Joined the Room(that is achieved by the code inside the TEMPLATE STRING below,
+    so the '${params.name} has joined.') */
+    socket.broadcast
+      .to(params.room)
+      .emit(
+        "newMessage",
+        generateMessage("Admin", `${params.name} has joined.`)
+      );
+
+    /* if we DON'T have any ERROR(so if the 'if' statement above is FALSE) we also execute the 'callback' 
+    function BUT we DON'T pass in any argument because in THIS case we DON'T have ANY error */
+    callback();
+  });
 
   /* We're going to use this 'emit' method on BOTH the Client AND the Server to EMIT Events, 'emit' is REALLY
   similar to the listeners Events BUT in this case we're NOT listening to an Event, we're CREATING the Event.
@@ -146,7 +196,24 @@ io.on("connection", socket => {
 
   // 'connection' and 'disconnect' are BUILT-IN Events
   socket.on("disconnect", () => {
-    console.log("User was disconnected");
+    /* REMEMBER that the returning value of the 'removeUser' function is the ACUTAL user that got removed, so 
+    here below we're just storing THAT removed User in this 'user' variable */
+    var user = users.removeUser(socket.id);
+
+    /* In this 'if' statement we're checking that IF and 'user' is ACTUALLY been REMOVED, so if THAT 'user'
+    variable we defined here above is NOT undefined(so if it ACTUALLY contains SOMETHING), SO if  an 'user'
+    EXIST we're going to emit TWO Event to EVERY single User connected to the Chat Room, which means that we're
+    going to be using 'io.to().emit()' just like we did up above. The FIRST 'emit' is going to UPDATE the User
+    LIST(so we're EMITTING the 'updateUserList' EVENT pretty much) and the SECOND 'emit' is going to print a 
+    message */
+    if (user) {
+      /* So NOW when a User leave the ROOM we're NOT going to see any User DUPLICATE because we're now UPDATING
+      that LIST when an User lave */
+      io.to(user.room).emit("updateUserList", users.getUserList(user.room));
+      io
+        .to(user.room)
+        .emit("newMessage", generateMessage("Admin", `${user.name} has left.`));
+    }
   });
 });
 
